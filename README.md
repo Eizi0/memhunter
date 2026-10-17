@@ -56,6 +56,12 @@ The desktop app (`app/desktop/`) builds a Windows NSIS installer and, since this
 scripts that fetch and pin CAPA/FLOSS/bulk_extractor/Python for each platform, and
 `.github/workflows/linux-build.yml` for the Linux CI build.
 
+## Usage
+
+**[docs/USAGE.md](docs/USAGE.md)** — the desktop workflow (import → analyze → Signatures/CAPA →
+ATT&CK → draft rule → export) and the full CLI walkthrough with real command output, including a
+headless triage-pipeline script.
+
 ## Architecture
 
 Same shape as the engine this project builds on — see `ARCHITECTURE.md` for the full picture
