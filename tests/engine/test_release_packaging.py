@@ -76,7 +76,7 @@ def test_nsis_installer_uses_memhunter_icon() -> None:
     conf_path = Path(__file__).resolve().parents[2] / "app" / "desktop" / "tauri.conf.json"
     conf = json.loads(conf_path.read_text(encoding="utf-8"))
     nsis = conf["bundle"]["windows"]["nsis"]
-    assert conf["bundle"]["targets"] == ["nsis"]
+    assert conf["bundle"]["targets"] == ["nsis", "deb", "appimage"]
     assert conf["bundle"]["windows"]["webviewInstallMode"]["type"] == "embedBootstrapper"
     assert conf["bundle"]["windows"]["webviewInstallMode"]["silent"] is False
     assert nsis["installMode"] == "perMachine"

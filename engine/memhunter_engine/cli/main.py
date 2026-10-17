@@ -50,6 +50,8 @@ def _run_job(method: str, params: dict[str, Any], *, label: str) -> dict[str, An
                 code=error.get("code", "job_failed"),
                 message=error.get("message", f"{label} failed."),
                 details=error.get("details"),
+                suggestion=error.get("suggestion"),
+                data=error.get("data") or {},
             )
         time.sleep(_POLL_INTERVAL_SECONDS)
 
@@ -65,7 +67,7 @@ def _print_json(data: Any) -> None:
 
 def cmd_import(args: argparse.Namespace) -> int:
     job = _run_job("evidence.import", {"path": args.path}, label="Import")
-    evidence = job.get("result") or {}
+    evidence = (job.get("result") or {}).get("evidence") or {}
     print(f"Imported: evidence_id={evidence.get('id')}")
     print(f"  detected_os={evidence.get('detected_os')} sha256={evidence.get('sha256')}")
     return 0
@@ -92,7 +94,28 @@ def cmd_analyze(args: argparse.Namespace) -> int:
         "profile": args.profile,
         "capabilities": [c.strip() for c in capabilities if c.strip()],
     }
-    job = _run_job("analysis.run", params, label="Analysis")
+    try:
+        job = _run_job("analysis.run", params, label="Analysis")
+    except AppError as exc:
+        if exc.code != "kernel_symbols_required" or args.no_fetch_symbols:
+            raise
+        guid = exc.data.get("guid")
+        age = exc.data.get("age")
+        pdb_name = exc.data.get("pdb_name")
+        if not guid or not age:
+            raise
+        print(
+            f"  Windows kernel symbols required ({pdb_name}); "
+            "fetching from Microsoft's symbol server…",
+            file=sys.stderr,
+        )
+        _run_job(
+            "symbols.fetch",
+            {"evidence_id": args.evidence_id, "pdb_name": pdb_name, "guid": guid, "age": age},
+            label="Symbol fetch",
+        )
+        print("  Symbols ready, retrying analysis…", file=sys.stderr)
+        job = _run_job("analysis.run", params, label="Analysis")
     print(f"Analysis complete (profile={args.profile}).")
     if args.json:
         _print_json(job.get("result"))
@@ -120,7 +143,8 @@ def cmd_yara_scan(args: argparse.Namespace) -> int:
         params["rule_names"] = args.rules.split(",")
     job = _run_job(method, params, label="YARA scan")
     result = job.get("result") or {}
-    print(f"YARA scan complete: {result.get('match_count', '?')} match(es).")
+    scan = result.get("scan") or {}
+    print(f"YARA scan complete: {scan.get('match_count', '?')} match(es).")
     if args.json:
         _print_json(result)
     return 0
@@ -133,7 +157,8 @@ def cmd_capa(args: argparse.Namespace) -> int:
         label="CAPA analysis",
     )
     result = job.get("result") or {}
-    print(f"CAPA analysis complete: {result.get('capability_count', '?')} capabilit(y/ies).")
+    scan = result.get("scan") or {}
+    print(f"CAPA analysis complete: {scan.get('capability_count', '?')} capabilit(y/ies).")
     if args.json:
         _print_json(result)
     return 0
@@ -178,7 +203,7 @@ def cmd_report(args: argparse.Namespace) -> int:
         params["destination"] = args.out
     job = _run_job("export.generate", params, label="Export")
     result = job.get("result") or {}
-    path = result.get("path") or result.get("destination")
+    path = result.get("primary_path") or result.get("output_dir")
     print(f"Report written: {path}")
     return 0
 
@@ -212,6 +237,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Comma-separated capability IDs (only used with --profile custom).",
     )
     p_analyze.add_argument("--json", action="store_true", help="Print the result as JSON.")
+    p_analyze.add_argument(
+        "--no-fetch-symbols",
+        action="store_true",
+        help="Don't auto-download missing Windows kernel symbols (offline/air-gapped use).",
+    )
     p_analyze.set_defaults(func=cmd_analyze)
 
     p_yara = sub.add_parser("yara-scan", help="Run a YARA scan.")
@@ -259,6 +289,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc.message}", file=sys.stderr)
         if exc.details:
             print(f"  {exc.details}", file=sys.stderr)
+        if exc.suggestion:
+            print(f"  {exc.suggestion}", file=sys.stderr)
         return 1
     except KeyboardInterrupt:
         print("\ninterrupted", file=sys.stderr)
