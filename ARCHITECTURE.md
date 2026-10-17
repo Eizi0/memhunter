@@ -1,14 +1,18 @@
 # MemHunter architecture
 
-Local-first Windows x64 desktop workbench for memory forensics.
+Local-first memory forensics workbench, as a Windows/Linux desktop app, a headless CLI, or both.
 
-React UI → Tauri 2 shell → bundled Python 3.12 engine → Volatility 3 APIs.
+CLI, or React UI → Tauri 2 shell → the same Python 3.12 engine either way → Volatility 3 APIs.
 
-The application host is Windows x64. Evidence may be Windows or Linux memory images.
-Linux images are explored through Plugin Explorer (`linux.*` plugins). Quick Triage
-and Complete Analysis currently provide the guided Windows Volatility workflow.
+The application host is Windows x64 or Linux x64. Evidence may be Windows or Linux memory
+images, independent of host OS. Quick Triage and Complete Analysis run a guided profile for
+whichever OS the evidence turns out to be (Windows `windows.*` plugins or Linux `linux.*`
+plugins, picked automatically from the dump itself — see `analysis/process_analysis.py`).
+Plugin Explorer remains available for anything outside the guided profile on either OS.
 
-MemHunter is not a CLI wrapper, not a cloud product, and does not score malware.
+MemHunter is not a cloud product and does not score malware. It ships as a desktop app and as a
+`memhunter` CLI (`engine/memhunter_engine/cli/`) — the CLI drives the exact same engine code the
+desktop app does, not a separate reimplementation.
 
 ## Layout
 

@@ -899,8 +899,40 @@ export type NavId =
   | "jobs"
   | "plugins"
   | "export"
+  | "attck"
   | "settings"
   | "about";
+
+export type AttckSource = {
+  kind: "capa" | "yara";
+  name: string | null;
+  namespace?: string | null;
+  artifact_id: string | null;
+  capability_id?: string;
+  match_id?: string;
+};
+
+export type AttckTechnique = {
+  technique_id: string;
+  sources: AttckSource[];
+};
+
+export type AttckCoverage = {
+  evidence_id: string;
+  technique_count: number;
+  techniques: AttckTechnique[];
+};
+
+export type DraftRuleFormat = "sigma" | "yara";
+
+export type DraftRuleSourceKind = "yara_match" | "capa_capability" | "process";
+
+export type DraftRule = {
+  format: DraftRuleFormat;
+  source: DraftRuleSourceKind;
+  source_id: string;
+  content: string;
+};
 
 export type SearchHit = {
   entity: string;

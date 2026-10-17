@@ -6,6 +6,14 @@ app/desktop/resources/tools/bulk_extractor/*.tar.gz.sha256
 app/desktop/resources/tools/capa/*.exe
 app/desktop/resources/tools/floss/*.exe
 
+# Same tools, Linux builds (fetched by scripts/linux/prepare-*.sh). License
+# texts (README.txt/LICENSE*) are committed; the binaries and bundled shared
+# libraries are not.
+app/desktop/resources/tools/bulk_extractor/bulk_extractor
+app/desktop/resources/tools/bulk_extractor/lib/
+app/desktop/resources/tools/capa/capa
+app/desktop/resources/tools/floss/floss
+
 # Dependencies
 node_modules/
 app/frontend/dist/
@@ -64,5 +72,5 @@ dist/
 build/
 target/
 app/desktop/resources/runtime/**
-!app/desktop/resources/runtime/.gitkeep
+!app/desktop/resources/runtime/README.txt
 packaging/cache/

@@ -18,6 +18,20 @@ MemHunter builds on the engine architecture of [Dumplyzer](https://github.com/Em
 - **Native Linux support.** Linux memory images get the same guided analysis profile Windows
   images do (process list, command lines, network, modules), not just raw Plugin Explorer access.
 
+## Screenshots
+
+Real run against a public DFIR memory-forensics challenge image — genuine LSASS credential-dump
+finding (`comsvcs.dll` MiniDump), mapped to ATT&CK, with a generated draft Sigma rule.
+
+| | |
+|---|---|
+| ![Overview](docs/screenshots/02-overview.png) | ![Processes](docs/screenshots/03-processes.png) |
+| ![Signatures](docs/screenshots/05-signatures.png) | ![ATT&CK coverage](docs/screenshots/06-attck-coverage.png) |
+
+More: [Network](docs/screenshots/04-network.png) ·
+[Draft Sigma rule](docs/screenshots/07-attck-draft-rule.png) ·
+[Empty state](docs/screenshots/01-empty-state.png)
+
 ## Why this exists
 
 Forensic analysis that stays in your head, or in a GUI you have to screenshot, doesn't make it
@@ -36,6 +50,11 @@ source .venv/bin/activate   # .venv\Scripts\activate on Windows
 pip install -e ".[dev]"
 memhunter --help
 ```
+
+The desktop app (`app/desktop/`) builds a Windows NSIS installer and, since this fork, Linux
+`.deb`/AppImage bundles too — see `scripts/windows/` and `scripts/linux/` for the tool-prep
+scripts that fetch and pin CAPA/FLOSS/bulk_extractor/Python for each platform, and
+`.github/workflows/linux-build.yml` for the Linux CI build.
 
 ## Architecture
 

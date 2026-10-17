@@ -1,0 +1,70 @@
+{
+  "python": {
+    "version": "3.12.15",
+    "implementation": "python-build-standalone (astral-sh), x86_64-unknown-linux-gnu, install_only",
+    "release_tag": "20261013",
+    "filename": "cpython-3.12.15+20261013-x86_64-unknown-linux-gnu-install_only.tar.gz",
+    "url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261013/cpython-3.12.15+20261013-x86_64-unknown-linux-gnu-install_only.tar.gz",
+    "sha256": "5d546fc004fc2435fa142eb8f42ed8de5eb4725963dc22f7e6671014a80eb560",
+    "checksums_url": "https://github.com/astral-sh/python-build-standalone/releases/download/20261013/SHA256SUMS",
+    "note": "No official Linux-portable CPython 3.12.10 build exists (unlike the Windows embeddable zip); python-build-standalone is the same relocatable-build project uv/rye use. 3.12.15 is the closest 3.12.x build available and is functionally equivalent for this engine."
+  },
+  "engine": {
+    "package": "memhunter-engine",
+    "version": "0.1.1",
+    "volatility3": "2.28.0",
+    "pefile": "2024.8.26",
+    "yara_python": "4.5.4",
+    "lockfile": "engine/requirements.lock.txt",
+    "capa": "bundled v9.4.0 Apache-2.0",
+    "floss": "bundled v3.1.1 Apache-2.0",
+    "bulk_extractor": "bundled v2.2.0 GPL-3.0-or-later (extracted from the official .snap payload, see prepare-bulk-extractor.sh)"
+  },
+  "bulk_extractor": {
+    "version": "2.2.0",
+    "project": "https://github.com/simsong/bulk_extractor",
+    "release": "https://github.com/simsong/bulk_extractor/releases/tag/v2.2.0",
+    "license": "GPL-3.0-or-later",
+    "snap_filename": "bulk-extractor_2.2.0_amd64.snap",
+    "snap_url": "https://github.com/simsong/bulk_extractor/releases/download/v2.2.0/bulk-extractor_2.2.0_amd64.snap",
+    "snap_sha256": "dbc0749a7a84e2710c104a09fd921b93c1db9e2147bb11da978dea7af0e16c67",
+    "checksums_url": "https://github.com/simsong/bulk_extractor/releases/download/v2.2.0/SHA256SUMS",
+    "source_filename": "bulk_extractor-2.2.0.tar.gz",
+    "source_url": "https://github.com/simsong/bulk_extractor/releases/download/v2.2.0/bulk_extractor-2.2.0.tar.gz",
+    "source_sha256": "b9e15d40d711aa43590e1bf1a25d30943e3bad8371281d7c80d3803a6f34c268",
+    "linux_asset": "bulk-extractor_2.2.0_amd64.snap",
+    "note": "simsong/bulk_extractor ships Linux builds only as a Snap package, not a standalone binary. The .snap is a squashfs image; prepare-bulk-extractor.sh extracts the bulk_extractor binary from it with unsquashfs (no snapd / confinement involved, matches the Windows script's 'separate subprocess, never linked' GPL isolation).",
+    "bundled": true
+  },
+  "capa": {
+    "version": "9.4.0",
+    "project": "https://github.com/mandiant/capa",
+    "release": "https://github.com/mandiant/capa/releases/tag/v9.4.0",
+    "license": "Apache-2.0",
+    "license_url": "https://raw.githubusercontent.com/mandiant/capa/v9.4.0/LICENSE.txt",
+    "zip_filename": "capa-v9.4.0-linux.zip",
+    "zip_url": "https://github.com/mandiant/capa/releases/download/v9.4.0/capa-v9.4.0-linux.zip",
+    "zip_sha256": "07800a1d20a21eb18fc98716e2ae81b668e0c9a04defd588c8aa17ea3d3281e4",
+    "linux_asset": "capa",
+    "bundled": true
+  },
+  "floss": {
+    "version": "3.1.1",
+    "project": "https://github.com/mandiant/flare-floss",
+    "release": "https://github.com/mandiant/flare-floss/releases/tag/v3.1.1",
+    "license": "Apache-2.0",
+    "license_url": "https://raw.githubusercontent.com/mandiant/flare-floss/v3.1.1/LICENSE.txt",
+    "zip_filename": "floss-v3.1.1-linux.zip",
+    "zip_url": "https://github.com/mandiant/flare-floss/releases/download/v3.1.1/floss-v3.1.1-linux.zip",
+    "zip_sha256": "40c05a869f34f7e2417b17ca290cc54bd3671ee1f0a2d9bd5103284c01a54666",
+    "linux_asset": "floss",
+    "bundled": true
+  },
+  "application": {
+    "version": "0.1.1",
+    "identifier": "com.memhunter.workbench",
+    "install_deb": "/opt/MemHunter or /usr/bin via dpkg (tauri bundle default)",
+    "install_appimage": "self-contained AppImage, no install path",
+    "data_dir": "$XDG_DATA_HOME/memhunter or ~/.local/share/memhunter"
+  }
+}

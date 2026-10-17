@@ -202,7 +202,7 @@ pub fn bundled_bulk_extractor_dir(python: &Path) -> Option<PathBuf> {
         );
     }
     for cand in cands {
-        if cand.join("bulk_extractor64.exe").is_file() {
+        if cand.join("bulk_extractor64.exe").is_file() || cand.join("bulk_extractor").is_file() {
             return Some(cand);
         }
     }
@@ -685,6 +685,27 @@ mod tests {
         write_file(&runtime.join("python.exe"));
         write_file(&tools.join("bulk_extractor64.exe"));
         let found = bundled_bulk_extractor_dir(&runtime.join("python.exe")).expect("tools");
+        assert_eq!(found, tools);
+        let _ = fs::remove_dir_all(&tmp);
+    }
+
+    #[test]
+    fn bundled_bulk_extractor_dir_finds_linux_binary_name() {
+        let tmp = env::temp_dir().join(format!(
+            "memhunter-be-linux-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .map(|d| d.as_nanos())
+                .unwrap_or(0)
+        ));
+        let runtime = tmp.join("resources").join("runtime");
+        let tools = tmp.join("resources").join("tools").join("bulk_extractor");
+        fs::create_dir_all(&runtime).unwrap();
+        fs::create_dir_all(&tools).unwrap();
+        write_file(&runtime.join("python"));
+        write_file(&tools.join("bulk_extractor"));
+        let found = bundled_bulk_extractor_dir(&runtime.join("python")).expect("tools");
         assert_eq!(found, tools);
         let _ = fs::remove_dir_all(&tmp);
     }

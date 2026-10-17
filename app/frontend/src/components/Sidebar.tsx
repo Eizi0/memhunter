@@ -16,6 +16,7 @@ import {
   Search,
   Settings,
   ShieldAlert,
+  Target,
 } from "lucide-react";
 import type { AnalysisCoverage, NavId } from "../lib/types";
 import { coverageForNav, coverageLiveKind } from "../lib/analysisCoverage";
@@ -46,6 +47,7 @@ const PRIMARY_NAV: { id: NavId; label: string; icon: LucideIcon }[] = [
   { id: "timeline", label: "Timeline", icon: History },
   { id: "artifacts", label: "Carved Data", icon: FileSearch },
   { id: "signatures", label: "Signatures", icon: Fingerprint },
+  { id: "attck", label: "ATT&CK", icon: Target },
   { id: "jobs", label: "Jobs", icon: ListTodo },
   { id: "plugins", label: "Plugins", icon: Puzzle },
   { id: "export", label: "Export", icon: Download },
@@ -95,6 +97,7 @@ const SECTION_TITLE: Partial<Record<NavId, string>> = {
   timeline: "Timeline",
   artifacts: "Carved Data",
   signatures: "Signatures",
+  attck: "ATT&CK Coverage",
   plugins: "Plugins",
   export: "Export",
 };

@@ -16,6 +16,7 @@ import { MemoryExplorerView } from "./components/MemoryExplorerView";
 import { TimelineView } from "./components/TimelineArtifactsViews";
 import { ArtifactsView, type ArtifactsPane } from "./components/ArtifactsView";
 import { SignaturesView } from "./components/SignaturesView";
+import { AttckView } from "./components/AttckView";
 import { PluginExplorerView } from "./components/PluginExplorerView";
 import { ExportView } from "./components/ExportView";
 import { PlaceholderView } from "./components/PlaceholderView";
@@ -1120,6 +1121,15 @@ export default function App() {
           jobsRunning={jobsRunning}
           activeJobs={activeJobs}
           nowMs={nowMs}
+        />
+      );
+      break;
+    case "attck":
+      body = (
+        <AttckView
+          evidenceId={evidence?.id ?? null}
+          onError={setErr}
+          refreshToken={`${coverageTick}:${jobTick}`}
         />
       );
       break;

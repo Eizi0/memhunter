@@ -36,11 +36,28 @@ removed or altered.
 | CAPA | 9.4.0 | Apache-2.0. Invoked as a separate `.exe` process against extracted PE artifacts only. |
 | FLOSS | 3.1.1 | Apache-2.0. Invoked as a separate `.exe` process against extracted PE artifacts only. |
 
-## Linux: redistributed as separate programs (added for MemHunter)
+## Linux: redistributed with the engine runtime
 
-*Filled in during the Linux-support work with independently verified versions, release-asset
-SHA-256 hashes, and license text, matching the same diligence as the Windows table above —
-see the project's CHANGELOG for when this section was completed.*
+| Component | Version | License |
+|-----------|---------|---------|
+| CPython (python-build-standalone, x86_64-unknown-linux-gnu, install_only) | 3.12.15 (release `20261013`) | Python Software Foundation License (PSF). Build project: https://github.com/astral-sh/python-build-standalone (Apache-2.0 build scripts; the interpreter itself is still PSF-licensed CPython) — the same relocatable-build project `uv`/`rye` use. No official Linux-portable 3.12.10 build exists (unlike the Windows embeddable zip); 3.12.15 is the closest 3.12.x build available. SHA-256 of `cpython-3.12.15+20261013-x86_64-unknown-linux-gnu-install_only.tar.gz`: `5d546fc004fc2435fa142eb8f42ed8de5eb4725963dc22f7e6671014a80eb560`, verified against the release's own `SHA256SUMS` and by independent re-download. |
+| volatility3 | 2.28.0 | Volatility Software License 1.0 — same terms and same obligations as the Windows build; see above. |
+| pefile | 2024.8.26 | MIT |
+| yara-python | 4.5.4 | Apache-2.0 (Python bindings); libyara itself is BSD-3-Clause |
+
+## Linux: redistributed as separate programs (subprocess only, never linked)
+
+| Component | Version | License |
+|-----------|---------|---------|
+| bulk_extractor | 2.2.0 | **GPL-3.0-or-later**, same isolation as Windows (separate process, never imported). Upstream publishes Linux builds only as a Snap package (`bulk-extractor_2.2.0_amd64.snap`, SHA-256 `dbc0749a7a84e2710c104a09fd921b93c1db9e2147bb11da978dea7af0e16c67`, verified against the release's own `SHA256SUMS`); `scripts/linux/prepare-bulk-extractor.sh` unpacks that squashfs image with `unsquashfs`, lifts out the `bulk_extractor` binary and its bundled shared libraries (OpenSSL engines, abseil, libexpat, libz — all from the same official snap, unmodified), and rewrites its RPATH with `patchelf` so it runs without snapd/confinement. Corresponding source (`bulk_extractor-2.2.0.tar.gz`, SHA-256 `b9e15d40d711aa43590e1bf1a25d30943e3bad8371281d7c80d3803a6f34c268`) is shipped alongside it under `app/desktop/resources/tools/bulk_extractor/`, same as Windows. |
+| CAPA | 9.4.0 | Apache-2.0. Official Linux x64 build (`capa-v9.4.0-linux.zip`, SHA-256 `07800a1d20a21eb18fc98716e2ae81b668e0c9a04defd588c8aa17ea3d3281e4`). Invoked as a separate process against extracted PE artifacts only. |
+| FLOSS | 3.1.1 | Apache-2.0. Official Linux x64 build (`floss-v3.1.1-linux.zip`, SHA-256 `40c05a869f34f7e2417b17ca290cc54bd3671ee1f0a2d9bd5103284c01a54666`). Invoked as a separate process against extracted PE artifacts only. |
+
+All Linux hashes above were independently verified: each asset was downloaded directly from its
+GitHub release and re-hashed locally with `shasum -a 256`, then cross-checked against the
+publisher's own `SHA256SUMS` file where one exists (python-build-standalone, bulk_extractor) —
+not copied from a third party. See `packaging/linux/runtime-manifest.json` for the pinned URLs
+and hashes the `scripts/linux/prepare-*.sh` scripts verify against at build time.
 
 ## Bundled data
 

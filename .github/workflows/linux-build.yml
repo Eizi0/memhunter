@@ -1,0 +1,102 @@
+name: Linux desktop build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "app/**"
+      - "engine/**"
+      - "scripts/linux/**"
+      - "packaging/linux/**"
+      - ".github/workflows/linux-build.yml"
+  pull_request:
+    paths:
+      - "app/**"
+      - "engine/**"
+      - "scripts/linux/**"
+      - "packaging/linux/**"
+      - ".github/workflows/linux-build.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install system build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            squashfs-tools \
+            patchelf \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libssl-dev \
+            libgtk-3-dev
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Set up Python (host, for packaging scripts)
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Prepare Linux engine runtime
+        run: bash scripts/linux/prepare-engine-runtime.sh
+
+      - name: Prepare CAPA (Linux)
+        run: bash scripts/linux/prepare-capa.sh
+
+      - name: Prepare FLOSS (Linux)
+        run: bash scripts/linux/prepare-floss.sh
+
+      - name: Prepare bulk_extractor (Linux)
+        run: bash scripts/linux/prepare-bulk-extractor.sh
+
+      - name: Sanity-check the bundled tool binaries actually run
+        run: |
+          set -e
+          "app/desktop/resources/runtime/python" --version
+          "app/desktop/resources/tools/capa/capa" --version
+          "app/desktop/resources/tools/floss/floss" --version
+          "app/desktop/resources/tools/bulk_extractor/bulk_extractor" -h | head -1
+
+      - name: Install frontend dependencies
+        working-directory: app/frontend
+        run: npm ci
+
+      - name: Install desktop (Tauri CLI) dependencies
+        working-directory: app/desktop
+        run: npm ci
+
+      - name: Run engine test suite
+        run: |
+          python3 -m venv engine/.venv
+          source engine/.venv/bin/activate
+          pip install -e "engine[dev]"
+          python -m pytest tests/engine -q
+
+      - name: Build Linux bundles (deb + appimage)
+        working-directory: app/desktop
+        run: npm run tauri -- build --bundles deb,appimage
+
+      - name: Upload bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: memhunter-linux-bundles
+          path: |
+            app/desktop/target/release/bundle/deb/*.deb
+            app/desktop/target/release/bundle/appimage/*.AppImage
+          if-no-files-found: error
