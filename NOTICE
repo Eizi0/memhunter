@@ -1,0 +1,20 @@
+MemHunter
+Copyright 2026 Jeovany NGUEDJIO
+
+This product includes software originally developed for the Dumplyzer
+project (https://github.com/EmadAbedini/Dumplyzer), Copyright 2026 Emad
+Abedini, licensed under the Apache License, Version 2.0. See LICENSE.
+
+The bulk of the analysis engine (`engine/memhunter_engine/`, formerly
+`memscope_engine`) and the desktop application shell (`app/`) are derived
+from that project and have been substantially modified and extended for
+MemHunter, including (non-exhaustive):
+
+  - A new command-line / headless interface (`memhunter_engine/cli/`)
+  - MITRE ATT&CK technique mapping of findings and draft detection-rule
+    (Sigma/YARA) generation
+  - Native Linux host and guided Linux memory-image analysis support
+
+This file is provided to satisfy Section 4(d) of the Apache License,
+Version 2.0. See THIRD_PARTY_NOTICES.md for the licenses of bundled
+third-party tools (Volatility 3, CAPA, FLOSS, bulk_extractor, and others).

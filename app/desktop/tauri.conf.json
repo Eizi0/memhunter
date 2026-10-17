@@ -1,0 +1,93 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "MemHunter",
+  "version": "0.1.1",
+  "identifier": "com.memhunter.workbench",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://127.0.0.1:1420",
+    "frontendDist": "../frontend/dist"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "splash",
+        "title": "",
+        "url": "splash.html",
+        "width": 688,
+        "height": 384,
+        "resizable": false,
+        "maximizable": false,
+        "minimizable": false,
+        "closable": false,
+        "decorations": false,
+        "transparent": false,
+        "shadow": false,
+        "center": true,
+        "fullscreen": false,
+        "focus": true,
+        "visible": false,
+        "skipTaskbar": true,
+        "alwaysOnTop": true,
+        "backgroundColor": "#071428"
+      },
+      {
+        "label": "main",
+        "title": "MemHunter",
+        "width": 960,
+        "height": 640,
+        "minWidth": 900,
+        "minHeight": 640,
+        "maximized": false,
+        "theme": "Light",
+        "resizable": true,
+        "visible": false,
+        "focus": false,
+        "backgroundColor": "#f3f5f8"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost blob: data:; style-src 'self' 'unsafe-inline'; connect-src ipc: http://ipc.localhost; script-src 'self'",
+      "capabilities": ["default"]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "publisher": "MemHunter",
+    "licenseFile": "../../LICENSE",
+    "shortDescription": "Volatility 3 memory forensics workbench",
+    "longDescription": "MemHunter is an offline desktop workbench for Volatility 3 memory forensics. The analysis engine is a bundled Python 3.12 runtime with yara-python 4.5.4. bulk_extractor 2.2.0, Mandiant CAPA 9.4.0, and Mandiant FLOSS 3.1.1 are bundled as separate programs. PE Extraction reconstructs EXE/DLL artifacts from memory dumps.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "resources/runtime",
+      "resources/tools",
+      "resources/rules"
+    ],
+    "windows": {
+      "digestAlgorithm": "sha256",
+      "webviewInstallMode": {
+        "type": "embedBootstrapper",
+        "silent": false
+      },
+      "nsis": {
+        "installMode": "perMachine",
+        "template": "../../packaging/windows/nsis/installer.nsi",
+        "installerIcon": "icons/icon.ico",
+        "uninstallerIcon": "icons/icon.ico"
+      },
+      "wix": {
+        "language": "en-US",
+        "upgradeCode": "a7349549-6d10-4b69-90e4-b7523e941030"
+      }
+    }
+  }
+}

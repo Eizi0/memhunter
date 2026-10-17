@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <link rel="preload" as="image" href="./src/assets/memhunter-splash.jpg" />
+    <style>
+      html,
+      body {
+        margin: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #071428 url("./src/assets/memhunter-splash.jpg") center / cover
+          no-repeat;
+      }
+      img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        user-select: none;
+        -webkit-user-drag: none;
+        pointer-events: none;
+      }
+    </style>
+  </head>
+  <body>
+    <img src="./src/assets/memhunter-splash.jpg" alt="MemHunter" />
+    <script type="module" src="./splash.js"></script>
+  </body>
+</html>

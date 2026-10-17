@@ -1,0 +1,31 @@
+{
+  "name": "memhunter-frontend",
+  "private": true,
+  "version": "0.1.1",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "2.11.1",
+    "@tauri-apps/plugin-dialog": "^2.7.3",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.40.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@tauri-apps/cli": "2.11.4",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "5.9.2",
+    "vite": "7.1.3"
+  }
+}

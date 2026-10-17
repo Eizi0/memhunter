@@ -1,0 +1,14 @@
+{
+  "name": "memhunter-desktop",
+  "private": true,
+  "version": "0.1.1",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "npm --prefix ../frontend run dev",
+    "build": "npm --prefix ../frontend run build",
+    "tauri": "tauri"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.11.4"
+  }
+}

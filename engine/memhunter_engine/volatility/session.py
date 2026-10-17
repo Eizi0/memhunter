@@ -1,0 +1,292 @@
+"""Volatility 3 session construction and plugin execution (API-based, not CLI parse)."""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Callable, Type
+
+from memhunter_engine.errors import AppError, JobCancelled, job_cancelled_error
+from memhunter_engine.memory_image import app_error_for_unsatisfied
+from memhunter_engine.volatility.cancel import interrupt_on_cancel
+from memhunter_engine.volatility.treegrid import treegrid_to_table
+
+vollog = logging.getLogger("memhunter.tool")
+
+
+@dataclass
+class PluginResult:
+    plugin: str
+    columns: list[str]
+    rows: list[list[Any]]
+    transparency: dict[str, Any] = field(default_factory=dict)
+    table: dict[str, Any] = field(default_factory=dict)
+
+
+def _progress_mute(progress: float, description: str | None = None) -> None:
+    return None
+
+
+class VolatilitySession:
+    """Owns a Context bound to one memory image path."""
+
+    def __init__(self, image_path: Path) -> None:
+        self.image_path = Path(image_path).resolve()
+        if not self.image_path.is_file():
+            raise AppError(
+                code="evidence_not_found",
+                message="Memory image file was not found.",
+                details=str(self.image_path),
+                suggestion="Select a valid memory image path.",
+                entity="evidence",
+            )
+
+        from volatility3.framework import (
+            automagic,
+            constants,
+            contexts,
+            interfaces,
+            plugins,
+        )
+        from volatility3.framework.automagic import stacker
+        from volatility3.framework.configuration import requirements
+        from volatility3.framework import exceptions
+
+        from memhunter_engine.volatility.runtime import configure_volatility_runtime
+
+        try:
+            configure_volatility_runtime()
+        except Exception:
+            vollog.warning("volatility runtime configuration failed", exc_info=True)
+
+        self._automagic = automagic
+        self._constants = constants
+        self._contexts = contexts
+        self._interfaces = interfaces
+        self._plugins = plugins
+        self._stacker = stacker
+        self._requirements = requirements
+        self._exceptions = exceptions
+
+        self.context = contexts.Context()
+        self.volatility_version = getattr(constants, "PACKAGE_VERSION", "unknown")
+        single_location = requirements.URIRequirement.location_from_file(
+            str(self.image_path)
+        )
+        self.context.config["automagic.LayerStacker.single_location"] = single_location
+
+        self._base_config_path = "plugins"
+        self._failures: list[str] = []
+
+    def run_plugin(
+        self,
+        plugin_cls: Type[Any],
+        plugin_params: dict[str, Any] | None = None,
+        progress_callback: Callable[[float, str | None], None] | None = None,
+        *,
+        cancelled: Callable[[], bool] | None = None,
+        open_method: Type[Any] | None = None,
+    ) -> PluginResult:
+        plugin_name = f"{plugin_cls.__module__}.{plugin_cls.__name__}"
+        started = datetime.now(timezone.utc).isoformat()
+        plugin_params = plugin_params or {}
+
+        automagics = self._automagic.available(self.context)
+        automagics = self._automagic.choose_automagic(automagics, plugin_cls)
+
+        if self.context.config.get("automagic.LayerStacker.stackers", None) is None:
+            self.context.config["automagic.LayerStacker.stackers"] = (
+                self._stacker.choose_os_stackers(plugin_cls)
+            )
+
+        plugin_config_path = self._interfaces.configuration.path_join(
+            self._base_config_path, plugin_cls.__name__
+        )
+        for key, value in plugin_params.items():
+            self.context.config[
+                self._interfaces.configuration.path_join(plugin_config_path, key)
+            ] = value
+
+        if cancelled and cancelled():
+            raise job_cancelled_error()
+
+        from memhunter_engine.volatility.runtime import clear_needed_kernel
+
+        clear_needed_kernel()
+
+        def _progress(progress: float, description: str | None = None) -> None:
+            if cancelled and cancelled():
+                raise JobCancelled()
+            cb = progress_callback or _progress_mute
+            cb(progress, description)
+
+        with interrupt_on_cancel(cancelled):
+            constructed, table = self._construct_and_run(
+                plugin_cls,
+                plugin_name,
+                automagics,
+                _progress,
+                open_method,
+                cancelled,
+            )
+
+        columns = [str(c["name"]) for c in table.get("columns") or []]
+        rows = [list(r.get("cells") or []) for r in table.get("rows") or []]
+        finished = datetime.now(timezone.utc).isoformat()
+        transparency = {
+            "tool": "volatility3",
+            "tool_version": self.volatility_version,
+            "plugin": plugin_name,
+            "plugin_class": plugin_cls.__name__,
+            "parameters": plugin_params,
+            "started_at": started,
+            "finished_at": finished,
+            "status": "completed",
+            "source_evidence_path": str(self.image_path),
+        }
+        vollog.info(
+            "plugin completed",
+            extra={"channel": "tool", "plugin": plugin_name},
+        )
+        return PluginResult(
+            plugin=plugin_name,
+            columns=columns,
+            rows=rows,
+            transparency=transparency,
+            table=table,
+        )
+
+    def _construct_and_run(
+        self,
+        plugin_cls: Type[Any],
+        plugin_name: str,
+        automagics: Any,
+        progress: Callable[[float, str | None], None],
+        open_method: Type[Any] | None,
+        cancelled: Callable[[], bool] | None,
+    ) -> tuple[Any, dict[str, Any]]:
+        try:
+            constructed = self._plugins.construct_plugin(
+                self.context,
+                automagics,
+                plugin_cls,
+                self._base_config_path,
+                progress,
+                open_method,
+            )
+        except AppError:
+            raise
+        except JobCancelled:
+            raise
+        except self._exceptions.UnsatisfiedException as exc:
+            if cancelled and cancelled():
+                raise job_cancelled_error() from exc
+            unsat = [str(x) for x in exc.unsatisfied]
+            from memhunter_engine.volatility.kernel_symbols import maybe_kernel_symbols_error
+
+            needed = maybe_kernel_symbols_error()
+            if needed is not None:
+                raise needed from exc
+            vollog.error(
+                "plugin requirements unsatisfied plugin=%s unsatisfied=%s",
+                plugin_name,
+                unsat,
+                extra={"channel": "tool", "plugin": plugin_name, "unsatisfied": unsat},
+            )
+            raise app_error_for_unsatisfied(
+                self.image_path,
+                unsat,
+                plugin_name,
+                self.context,
+            ) from exc
+        except Exception as exc:  # noqa: BLE001
+            if cancelled and cancelled():
+                raise job_cancelled_error() from exc
+            raise AppError(
+                code="volatility_construct_failed",
+                message=f"Failed to construct Volatility plugin {plugin_cls.__name__}.",
+                details=f"{type(exc).__name__}: {exc}",
+                suggestion="Inspect engine logs and confirm the memory image is valid.",
+                entity="volatility",
+                data={"plugin": plugin_name},
+            ) from exc
+
+        if cancelled and cancelled():
+            raise job_cancelled_error()
+
+        try:
+            grid = constructed.run()
+        except AppError:
+            raise
+        except JobCancelled:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            if cancelled and cancelled():
+                raise job_cancelled_error() from exc
+            raise AppError(
+                code="volatility_run_failed",
+                message=f"Volatility plugin {plugin_cls.__name__} failed during execution.",
+                details=f"{type(exc).__name__}: {exc}",
+                suggestion="Retry analysis or try a different plugin/strategy.",
+                entity="volatility",
+                data={"plugin": plugin_name},
+            ) from exc
+
+        if cancelled and cancelled():
+            raise job_cancelled_error()
+
+        try:
+            table = treegrid_to_table(grid, cancelled=cancelled)
+        except AppError:
+            raise
+        except JobCancelled:
+            raise
+        except Exception as exc:  # noqa: BLE001
+            if cancelled and cancelled():
+                raise job_cancelled_error() from exc
+            raise AppError(
+                code="volatility_run_failed",
+                message=f"Volatility plugin {plugin_cls.__name__} failed during execution.",
+                details=f"{type(exc).__name__}: {exc}",
+                suggestion="Retry analysis or try a different plugin/strategy.",
+                entity="volatility",
+                data={"plugin": plugin_name},
+            ) from exc
+
+        if cancelled and cancelled():
+            raise job_cancelled_error()
+        return constructed, table
+
+
+def _treegrid_to_rows(grid: Any) -> tuple[list[str], list[list[Any]]]:
+    """Convert a Volatility TreeGrid into plain JSON-serializable rows."""
+    columns = [str(c.name) for c in grid.columns]
+    rows: list[list[Any]] = []
+
+    def _visitor(node: Any, accumulator: Any) -> Any:
+        values = list(node.values) if node.values is not None else []
+        rows.append([_cell_to_json(v) for v in values])
+        return accumulator
+
+    grid.populate(_visitor, None)
+    return columns, rows
+
+
+def _cell_to_json(value: Any) -> Any:
+    if value is None:
+        return None
+    if isinstance(value, (bool, int, float, str)):
+        return value
+    # datetime
+    if hasattr(value, "isoformat"):
+        try:
+            return value.isoformat()
+        except Exception:  # noqa: BLE001
+            pass
+    # format_hints.Hex and similar
+    try:
+        return str(value)
+    except Exception:  # noqa: BLE001
+        return repr(value)
