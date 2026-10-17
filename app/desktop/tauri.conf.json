@@ -55,7 +55,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": ["nsis", "deb", "appimage"],
     "publisher": "MemHunter",
     "licenseFile": "../../LICENSE",
     "shortDescription": "Volatility 3 memory forensics workbench",
