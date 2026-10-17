@@ -8,13 +8,12 @@ export const ABOUT_BODY: readonly string[] = [
 
 export const ABOUT_DEVELOPER = {
   heading: "Developed by",
-  name: "Emad Abedini",
-  role: "Detection Engineer | Malware Researcher | DFIR",
+  name: "Jeovany NGUEDJIO",
+  role: "Blue Team | DFIR | Detection Engineering",
 } as const;
 
 export const ABOUT_LINKS = [
-  { label: "GitHub", url: "https://github.com/EmadAbedini/MemHunter" },
-  { label: "LinkedIn", url: "https://www.linkedin.com/in/emad-abedini" },
+  { label: "GitHub", url: "https://github.com/Eizi0/memhunter" },
 ] as const;
 
 export const ABOUT_COMPONENTS_HEADING = "Analysis Components";
@@ -29,7 +28,7 @@ export const ABOUT_LICENSE = {
   summary:
     "MemHunter application source is licensed under the Apache License, Version 2.0.",
   thirdParty:
-    "Bundled analysis engines and tools remain under their original licenses. MemHunter does not relicense them.",
+    "Bundled analysis engines and tools remain under their original licenses. MemHunter does not relicense them. Built on the engine architecture of Dumplyzer (Apache-2.0) — see NOTICE.",
   links: [
     {
       label: "Apache License 2.0",
@@ -37,7 +36,7 @@ export const ABOUT_LICENSE = {
     },
     {
       label: "Third-Party Notices",
-      url: "https://github.com/EmadAbedini/MemHunter/blob/main/THIRD_PARTY_NOTICES.md",
+      url: "https://github.com/Eizi0/memhunter/blob/main/THIRD_PARTY_NOTICES.md",
     },
   ],
 } as const;

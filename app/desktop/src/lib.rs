@@ -684,10 +684,9 @@ async fn get_app_paths(state: State<'_, EngineState>) -> Result<Value, EngineErr
 
 /// Must stay in sync with About links in `app/frontend/src/lib/about.ts`.
 const ALLOWED_EXTERNAL_URLS: &[&str] = &[
-    "https://github.com/EmadAbedini/MemHunter",
-    "https://www.linkedin.com/in/emad-abedini",
+    "https://github.com/Eizi0/memhunter",
     "https://www.apache.org/licenses/LICENSE-2.0",
-    "https://github.com/EmadAbedini/MemHunter/blob/main/THIRD_PARTY_NOTICES.md",
+    "https://github.com/Eizi0/memhunter/blob/main/THIRD_PARTY_NOTICES.md",
 ];
 
 #[tauri::command]
@@ -1272,6 +1271,9 @@ mod tests {
             );
             rest = &rest[end..];
         }
-        assert!(found >= 4, "expected About external URLs, found {found}");
+        // GitHub + Apache License + Third-Party Notices. (The upstream project
+        // this started from also linked the original author's personal LinkedIn;
+        // that's not something to carry into a fork's About screen.)
+        assert!(found >= 3, "expected About external URLs, found {found}");
     }
 }
