@@ -39,16 +39,20 @@ fi
 mkdir -p "$DEST"
 # python-build-standalone's install_only tarball extracts to a top-level
 # python/ dir containing bin/, lib/, include/, etc. Keep that layout intact
-# (CPython resolves its stdlib relative to the real bin/ path) and symlink
-# runtime/python -> python/bin/python3.12 so engine.rs's python_candidates()
-# (which looks for `runtime/python` on non-Windows) finds it.
-tar -xzf "$PY_FILE" -C "$DEST" --strip-components=0
-PYBIN="$(find "$DEST/python/bin" -maxdepth 1 -name 'python3.*' ! -name '*-config' | sort | tail -1)"
+# (CPython resolves its stdlib relative to the real bin/ path) under pyroot/,
+# then symlink runtime/python -> pyroot/bin/python3.12 so engine.rs's
+# python_candidates() (which looks for `runtime/python` on non-Windows) finds
+# it. pyroot/ must be a different name than the symlink itself — ln -sf onto
+# an existing directory creates the link *inside* it instead of replacing it.
+tar -xzf "$PY_FILE" -C "$DEST"
+rm -rf "$DEST/pyroot"
+mv "$DEST/python" "$DEST/pyroot"
+PYBIN="$(find "$DEST/pyroot/bin" -maxdepth 1 -name 'python3.*' ! -name '*-config' | sort | tail -1)"
 if [[ -z "$PYBIN" ]]; then
-  echo "python3.x binary not found under $DEST/python/bin" >&2
+  echo "python3.x binary not found under $DEST/pyroot/bin" >&2
   exit 1
 fi
-ln -sf "python/bin/$(basename "$PYBIN")" "$DEST/python"
+ln -sf "pyroot/bin/$(basename "$PYBIN")" "$DEST/python"
 
 # Resolve the actual site-packages dir from the interpreter itself rather
 # than guessing the exact lib/pythonX.Y path.
