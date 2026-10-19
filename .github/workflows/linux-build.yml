@@ -91,6 +91,12 @@ jobs:
 
       - name: Build Linux bundles (deb + appimage)
         working-directory: app/desktop
+        # linuxdeploy ships as an AppImage; GitHub's runners have libfuse2
+        # installed but no working FUSE mount inside the job's containment,
+        # so it still can't self-mount. This tells AppImages (linuxdeploy
+        # included) to extract themselves and run from a tmp dir instead.
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
         run: npm run tauri -- build --bundles deb,appimage
 
       - name: Upload bundles
