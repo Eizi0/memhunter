@@ -282,20 +282,25 @@ def test_stale_bundled_yar_removed_on_sync(tmp_path: Path) -> None:
 def test_engine_and_desktop_bundled_trees_match() -> None:
     assert ENGINE_BUNDLED.is_dir()
     assert DESKTOP_BUNDLED.is_dir()
+    # Keyed by lowercased relative path so the comparison is case-insensitive
+    # (matches on Windows/macOS even if a file's case drifted), but the
+    # actual read below uses the real, correctly-cased Path — a lowercased
+    # path like "readme.md" doesn't resolve on Linux's case-sensitive
+    # filesystem even when the real file is "README.md".
     engine_files = {
-        p.relative_to(ENGINE_BUNDLED).as_posix().lower()
+        p.relative_to(ENGINE_BUNDLED).as_posix().lower(): p
         for p in ENGINE_BUNDLED.rglob("*")
         if p.is_file()
     }
     desktop_files = {
-        p.relative_to(DESKTOP_BUNDLED).as_posix().lower()
+        p.relative_to(DESKTOP_BUNDLED).as_posix().lower(): p
         for p in DESKTOP_BUNDLED.rglob("*")
         if p.is_file()
     }
-    assert engine_files == desktop_files
-    for rel in engine_files:
-        left = (ENGINE_BUNDLED / rel).read_bytes()
-        right = (DESKTOP_BUNDLED / rel).read_bytes()
+    assert engine_files.keys() == desktop_files.keys()
+    for rel, engine_path in engine_files.items():
+        left = engine_path.read_bytes()
+        right = desktop_files[rel].read_bytes()
         assert left == right, rel
 
 

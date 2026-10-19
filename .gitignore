@@ -40,7 +40,6 @@ engine/.venv/
 *.aff4
 *.e01
 *.dd
-data/
 data/artifacts/
 # runtime artifact stores (not source packages)
 **/MemHunter/artifacts/
