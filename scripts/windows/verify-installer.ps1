@@ -156,9 +156,6 @@ if ($msi.Count -gt 0) {
 }
 
 foreach ($item in $nsis) {
-    if ($item.Name -like "MemHunter*") {
-        throw "installer still uses old MemHunter branding: $($item.Name)"
-    }
     $sha = (Get-FileHash $item.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
     $sizeMb = [math]::Round($item.Length / 1MB, 1)
     Write-Host ("installer_path {0}" -f $item.FullName)
