@@ -1,5 +1,12 @@
 # MemHunter
 
+[![Latest release](https://img.shields.io/github/v/release/Eizi0/memhunter)](https://github.com/Eizi0/memhunter/releases/latest)
+[![Linux desktop build](https://github.com/Eizi0/memhunter/actions/workflows/linux-build.yml/badge.svg)](https://github.com/Eizi0/memhunter/actions/workflows/linux-build.yml)
+
+**[Download the latest release](https://github.com/Eizi0/memhunter/releases/latest)** — Windows
+installer (`.exe`), Linux `.deb`, and Linux AppImage, all built and published automatically from
+source by `.github/workflows/release.yml`.
+
 A local-first memory forensics workbench for DFIR, threat hunting, and malware triage. No cloud,
 no account, no telemetry — the memory image never leaves your machine. MemHunter does not score
 malware: YARA matches, CAPA capabilities, and carved strings are investigation leads, not
