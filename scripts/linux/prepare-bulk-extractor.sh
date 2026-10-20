@@ -84,6 +84,18 @@ if [[ -d "$EXTRACT_DIR/lib/x86_64-linux-gnu" ]]; then
 fi
 patchelf --set-rpath '$ORIGIN/lib' "$DEST/bulk_extractor"
 
+# Every copied library still carries whatever RPATH/RUNPATH it had inside the
+# snap's confinement (or none at all), which doesn't resolve once these files
+# sit in resources/tools/bulk_extractor/lib/ outside that sandbox — a library
+# that depends on a sibling (e.g. libabsl_random_internal_randen.so depending
+# on libabsl_random_internal_randen_hwaes.so) can fail to resolve even though
+# the sibling is right there, because nothing points at "the same directory
+# as me". Point every .so at itself (`$ORIGIN`) so sibling lookups work both
+# at runtime and when a bundler (linuxdeploy) statically walks dependencies.
+find "$DEST/lib" -name '*.so*' -type f -print0 | while IFS= read -r -d '' lib; do
+  patchelf --set-rpath '$ORIGIN' "$lib" 2>/dev/null || true
+done
+
 cp -f "$SRC_FILE" "$DEST/"
 
 cat > "$DEST/README.txt" <<EOF
